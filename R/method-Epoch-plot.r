@@ -3,7 +3,7 @@
 #' @param x An Epoch object
 #' @param y Not used (for S4 method compatibility)
 #' @param gap Numeric value specifying the gap between electrode traces (default: 2)
-#' @param groupIndex Integer or string. A group of electrodes to show together in a different color. If NULL(default), all electrodes are shown in the same color. 
+#' @param groupIndex Integer or string. A group of electrodes to show together in a different color. If NULL(default), all electrodes are shown in the same color.
 #' @param timeResolution Maximum number of time points to keep for each electrode (default: 2048)
 #' @param maxLabels Maximum number of electrode labels to display on the y-axis (default: 50)
 #' @param linewidth Line width for the electrode traces (default: 0.2)
@@ -18,16 +18,16 @@
 #' epoch_data <- matrix(rnorm(1000), nrow = 10)
 #' rownames(epoch_data) <- paste0("Electrode_", 1:10)
 #' epoch <- Epoch(epoch_data, startTime = 0, samplingRate = 100)
-#' 
+#'
 #' # Plot the epoch
 #' plot(epoch)
-#' 
-#' 
+#'
+#'
 #' @family Epoch methods
 #' @export
-setMethod("plot", signature(x = "Epoch", y = "missing"), 
-    function(x, y, gap = 2, 
-    groupIndex = NULL, timeResolution = 2048, 
+setMethod("plot", signature(x = "Epoch", y = "missing"),
+    function(x, y, gap = 2,
+    groupIndex = NULL, timeResolution = 2048, gain=1.0,
     maxLabels = 50, linewidth = 0.2, x.lab.size = 10, y.lab.size = 10, standardize = TRUE, ...) {
     elecNames <- rownames(x)
     data <- tblData(x)
@@ -71,7 +71,7 @@ setMethod("plot", signature(x = "Epoch", y = "missing"),
         names(standardize) <- elecNames
         standardize <- standardize[newElecNames]
     }
-    plotData <- t(.standardizeIEEG(plotData, standardize, gap))
+    plotData <- t(.standardizeIEEG(plotData, standardize, gap))*gain
     plotData <- as.data.frame(plotData)
     plotData$timeTicks <- timeTicks
 
@@ -83,7 +83,7 @@ setMethod("plot", signature(x = "Epoch", y = "missing"),
         plotData[[elec]] <- plotData[[elec]] + (i-1) * gap
     }
 
-    
+
     ## limit the number of labels on y-axis
     ylabels <- elecNamesReversed
     if (length(ylabels) > maxLabels) {
@@ -101,14 +101,14 @@ setMethod("plot", signature(x = "Epoch", y = "missing"),
         times = elecNamesReversed,
         direction = "long"
         )
-    
+
     plotData_long$Electrode <- factor(plotData_long$Electrode, levels = elecNamesReversed)
 
     ggplot(
-        plotData_long, 
+        plotData_long,
         aes(x = .data$timeTicks, y = .data$Signal, group = .data$Electrode)
     ) +
-    geom_line(linewidth = linewidth) + 
+    geom_line(linewidth = linewidth) +
     labs(x = xlabel, y = "Electrode") +
     scale_y_continuous(labels = ylabels, breaks = breakplot) +
     theme(
@@ -117,6 +117,6 @@ setMethod("plot", signature(x = "Epoch", y = "missing"),
         axis.title.y = element_text(size = y.lab.size)
     ) -> p
 
-    p 
+    p
     }
 )
